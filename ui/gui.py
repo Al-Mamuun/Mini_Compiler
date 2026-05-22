@@ -68,6 +68,9 @@ SNIPPETS = [
     ("Max of 2", "int a;\nint b;\nint mx;\na = 17;\nb = 42;\nif (a > b) {\n    mx = a;\n}\nif (b >= a) {\n    mx = b;\n}\nprint(mx);\n"),
     ("Even/Odd", "int n;\nint r;\nn = 7;\nr = n - (n / 2) * 2;\nif (r == 0) {\n    print(0);\n}\nif (r != 0) {\n    print(1);\n}\n"),
     ("Power", "int base;\nint exp;\nint res;\nbase = 2;\nexp = 8;\nres = 1;\nwhile (exp > 0) {\n    res = res * base;\n    exp = exp - 1;\n}\nprint(res);\n"),
+    ("Func: add", "int add(int a, int b) {\n    int result;\n    result = a + b;\n    return result;\n}\nint x;\nx = add(3, 7);\nprint(x);\n"),
+    ("Func: square", "int square(int n) {\n    int r;\n    r = n * n;\n    return r;\n}\nint val;\nval = square(5);\nprint(val);\n"),
+    ("Func: max", "int max(int a, int b) {\n    if (a > b) {\n        return a;\n    }\n    return b;\n}\nint m;\nm = max(12, 7);\nprint(m);\n"),
     ("Bubble Sort", "int a;\nint b;\nint c;\nint tmp;\na = 9;\nb = 3;\nc = 7;\nif (a > b) { tmp = a; a = b; b = tmp; }\nif (b > c) { tmp = b; b = c; c = tmp; }\nif (a > b) { tmp = a; a = b; b = tmp; }\nprint(a);\nprint(b);\nprint(c);\n"),
     ("Counter", "int i;\nint limit;\nlimit = 5;\ni = 0;\nwhile (i < limit) {\n    print(i);\n    i = i + 1;\n}\n"),
     ("Swap", "int x;\nint y;\nint tmp;\nx = 10;\ny = 20;\ntmp = x;\nx = y;\ny = tmp;\nprint(x);\nprint(y);\n"),
@@ -632,6 +635,9 @@ _NODE_STYLE = {
     'if':         ('? IF',           'pink'),
     'ifelse':     ('? IF-ELSE',      'pink'),
     'while':      ('↻ WHILE',        'cyan'),
+    'func_decl':  ('ƒ FUNC',         'purple'),
+    'return':     ('⇐ RETURN',       'accent4'),
+    'call_stmt':  ('⊕ CALL',         'accent2'),
 }
 
 _TYPE_COLOR = {
@@ -891,6 +897,27 @@ def render_ir(iv, ir_instructions):
         elif op == 'output':
             iv.insert('end', '  print ', 'ir_op')
             iv.insert('end', f'{s1}\n', 'ir_var')
+        elif op == 'func_begin':
+            iv.insert('end', f'\n  func ', 'ir_op')
+            iv.insert('end', f'{s1}', 'ir_label')
+            iv.insert('end', f'  [{s2}]\n', 'ir_idx')
+        elif op == 'param':
+            iv.insert('end', '  param ', 'ir_op')
+            iv.insert('end', f'{s2} ', 'ir_var')
+            iv.insert('end', f'{s1}\n', 'ir_var')
+        elif op == 'arg':
+            iv.insert('end', '  arg ', 'ir_op')
+            iv.insert('end', f'{s1}\n', 'ir_var')
+        elif op == 'call':
+            if d:
+                iv.insert('end', f'  {d} ', 'ir_var')
+                iv.insert('end', '= ', 'ir_op')
+            iv.insert('end', 'call ', 'ir_op')
+            iv.insert('end', f'{s1}', 'ir_label')
+            iv.insert('end', f'({s2})\n', 'ir_idx')
+        elif op == 'return':
+            iv.insert('end', '  return ', 'ir_op')
+            iv.insert('end', f'{s1}\n' if s1 is not None else '\n', 'ir_var')
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1221,7 +1248,7 @@ class CompilerInterface:
 
     def __init__(self, root):
         self.root = root
-        self.root.title("COMPILER // MAMUN_SYS v2.0")
+        self.root.title("LexiCore v1.0")
         self.root.geometry("1440x860")
         self.root.configure(bg=C['bg'])
         self.root.minsize(1100, 650)
@@ -1254,7 +1281,7 @@ class CompilerInterface:
         left.pack(side=tk.LEFT, padx=12)
         tk.Label(left, text='◈', font=('Segoe UI', 14, 'bold'),
                  bg=C['bg2'], fg=C['accent']).pack(side=tk.LEFT)
-        tk.Label(left, text='  MINI_COMPILER', font=('Segoe UI', 10, 'bold'),
+        tk.Label(left, text='  LexiCore', font=('Segoe UI', 10, 'bold'),
                  bg=C['bg2'], fg=C['text_bright']).pack(side=tk.LEFT)
         tk.Label(left, text='  // Abdullah Al-Mamun', font=('Segoe UI', 9, 'bold'),
                  bg=C['bg2'], fg=C['accent4']).pack(side=tk.LEFT)
@@ -1528,7 +1555,7 @@ while (i < 4) {
                                bg=C['bg2'], fg=C['accent'])
         self.status.pack(side=tk.LEFT, padx=10)
 
-        tk.Label(bar, text='UTF-8  ·  C-like  ·  MAMUN_SYS',
+        tk.Label(bar, text='UTF-8  ·  C-like  ·  LexiCore',
                  font=('Consolas', 7), bg=C['bg2'],
                  fg=C['text_dim']).pack(side=tk.RIGHT, padx=12)
 
@@ -1566,7 +1593,7 @@ while (i < 4) {
         dot  = ' ●' if self.file_modified else ''
         self.file_label.config(text=f'{name}{dot}',
                                fg=C['accent4'] if self.file_modified else C['text_dim'])
-        self.root.title(f'COMPILER // {name}{dot}')
+        self.root.title(f'LexiCore — {name}{dot}')
 
     # ── FILE OPS ──────────────────────────────────────────────────────────────
     def open_file(self):
