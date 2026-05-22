@@ -1,6 +1,6 @@
 # ============================================================
 # PHASE 2 — SYNTAX ANALYSIS
-# Mini C Compiler  ·  by Abdullah Al-Mamun
+# LexiCore
 # ============================================================
 """
 syntax_analysis.py
@@ -58,6 +58,15 @@ _PROD_LABELS: dict[str, str] = {
     'p_base_id':            'base  →  IDENTIFIER',
     'p_base_paren':         'base  →  ( expr )',
     'p_error':              '⚠  Syntax error / recovery',
+    'p_func_decl':          'func_decl  →  type id ( params ) { ... }',
+    'p_param_list':         'param_list  →  param_list , param  |  param',
+    'p_param':              'param  →  data_type IDENTIFIER',
+    'p_return_stmt':        'return_stmt  →  return expr ;  |  return ;',
+    'p_expr_stmt':          'expr_stmt  →  IDENTIFIER ( args ) ;',
+    'p_arg_list_many':      'arg_list  →  arg_list , expr',
+    'p_arg_list_one':       'arg_list  →  expr',
+    'p_arg_list_empty':     'arg_list  →  ε',
+    'p_base_call':          'base  →  IDENTIFIER ( arg_list )',
 }
 
 
