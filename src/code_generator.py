@@ -187,3 +187,56 @@ class AssemblyTranslator:
 
         # ── Unknown op (safety net) ─────────────────────────────────────
         out.append(f'    ; [unhandled op: {op}]')
+
+    # ── Function-related helpers (appended) ──────────────────────────────────
+    # These are called from _emit_instr via the function op dispatcher below.
+    # We patch _emit_instr at the bottom of the file via monkey-extension.
+
+def _patched_emit_instr(self, op, s1, s2, dst):
+    """Extends AssemblyTranslator._emit_instr with function-related ops."""
+    out = self.asm_output
+    a   = self._operand
+
+    if op == 'func_begin':
+        out.append(f'\n; ── function: {s1}  (returns {s2}) ──')
+        out.append(f'{s1}:')
+        out.append('    PUSH    EBP')
+        out.append('    MOV     EBP, ESP')
+        return
+
+    if op == 'param':
+        reg = self._alloc(s1)
+        param_keys = [k for k in self._reg_alloc if k == s1]
+        idx = list(self._reg_alloc.keys()).index(s1)
+        offset = 8 + idx * 4
+        out.append(f'    MOV     {reg}, [EBP+{offset}]  ; param {s1}:{s2}')
+        return
+
+    if op == 'arg':
+        r = a(s1)
+        out.append(f'    PUSH    {r}')
+        return
+
+    if op == 'call':
+        out.append(f'    CALL    {s1}')
+        if s2 and int(s2) > 0:
+            out.append(f'    ADD     ESP, {int(s2) * 4}')
+        if dst:
+            r_dst = self._alloc(str(dst))
+            out.append(f'    MOV     {r_dst}, EAX')
+        return
+
+    if op == 'return':
+        if s1 is not None:
+            r = a(s1)
+            out.append(f'    MOV     EAX, {r}')
+        out.append('    MOV     ESP, EBP')
+        out.append('    POP     EBP')
+        out.append('    RET')
+        return
+
+    # Delegate to original
+    _original_emit_instr(self, op, s1, s2, dst)
+
+_original_emit_instr = AssemblyTranslator._emit_instr
+AssemblyTranslator._emit_instr = _patched_emit_instr
