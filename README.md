@@ -4,13 +4,12 @@
 
 ![Compiler](https://img.shields.io/badge/Compiler-C--Like-purple?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3.8+-blue?style=for-the-badge&logo=python)
-![PLY](https://img.shields.io/badge/Parser-PLY%20LALR(1)-orange?style=for-the-badge)
 ![GUI](https://img.shields.io/badge/GUI-Tkinter-green?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
 
-**A modern, VS Code–styled mini compiler with full pipeline: Lexer → Parser → Semantic → IR → Assembly**
+**A modern, VS Code-styled compiler with full syntax highlighting and real-time compilation**
 
-[Features](#-features) • [Installation](#-installation) • [Usage](#-usage) • [Architecture](#-architecture) • [Syntax Reference](#-supported-syntax) • [Screenshots](#-screenshots)
+[Features](#-features) • [Installation](#-installation) • [Usage](#-usage) • [Architecture](#-architecture) • [Screenshots](#-screenshots)
 
 </div>
 
@@ -18,130 +17,97 @@
 
 ## ✨ Features
 
-### 🎨 Modern VS Code–Styled Interface
+### 🎨 Modern VS Code Interface
+- **Dark Theme** - Beautiful VS Code Dark+ color scheme
+- **Syntax Highlighting** - Real-time code coloring for keywords, operators, comments, and more
+- **Activity Bar** - Quick access to file operations
+- **Split View** - Side-by-side editor and output panels
+- **Smart Tab System** - Multiple output views in organized tabs
 
-- **Dracula Dark Theme** — hand-tuned `#282A36` palette matching VS Code Dark+
-- **Syntax Highlighting** — real-time coloring for keywords, numbers, operators, and comments
-- **Split-Panel Layout** — editor on the left, tabbed output on the right
-- **Smart Tab System** — 7 output tabs: Tokens · Syntax · Symbols · Semantic · IR · Assembly · Problems
-- **Code Snippets Menu** — 10 built-in programs (Factorial, FizzBuzz, Bubble Sort, Power, …)
-
-### 🔧 Full Compiler Pipeline
-
-| Phase | Module | Description |
-|-------|--------|-------------|
-| **Lexical Analysis** | `lexer.py` | PLY-based tokenizer; handles keywords, identifiers, literals, operators, single- and multi-line comments |
-| **Syntax Analysis** | `parser.py` + `syntax_analysis.py` | LALR(1) parser (PLY `yacc`); builds AST, fires grammar rules, reports parse errors with recovery |
-| **Symbol Table** | `symbol_table.py` | Nested-scope stack; tracks type, value, scope level, and address for every variable |
-| **Semantic Analysis** | `semantic.py` | Re-uses parser errors; checks undeclared variables, duplicate declarations, and type compatibility |
-| **IR Generation** | `parser.py` | Emits three-address code (TAC) instructions as dicts during parsing |
-| **Code Generation** | `code_generator.py` | Translates TAC to pseudo-x86 NASM assembly; proper `IDIV`/`CDQ`, `SETcc`, `MOVZX` sequences |
-| **LL(1) Tool** | `grammar_utils.py` + `grammar_tool.py` | Standalone LL(1) analyser: left-recursion removal, left factoring, FIRST/FOLLOW sets, LL(1) parsing table |
+### 🔧 Compiler Capabilities
+- **Lexical Analysis** - Tokenizes source code with detailed token information
+- **Syntax Parsing** - Validates code structure and builds parse trees
+- **Symbol Table** - Tracks variables with scope management
+- **IR Generation** - Produces intermediate representation code
+- **Assembly Output** - Generates target assembly code
+- **Error Reporting** - Clear, actionable error messages
 
 ### 💡 Developer Experience
-
-- **File Management** — Open / Save with `Ctrl+O` / `Ctrl+S`
-- **Line Numbers** — auto-updating gutter
-- **Modified Indicator** — `●` in title bar for unsaved changes
-- **Status Bar** — live compilation status (Build OK / error count)
-- **LL(1) Grammar Window** — separate floating window for grammar transformation experiments
+- **File Management** - Open, save, and manage source files
+- **Line Numbers** - Auto-updating line number display
+- **Modified Indicator** - Visual feedback for unsaved changes
+- **Keyboard Shortcuts** - `Ctrl+S` to save, `Ctrl+O` to open
+- **Status Bar** - Real-time compilation status updates
 
 ---
 
 ## 🚀 Installation
 
 ### Prerequisites
-
-```
+```bash
 Python 3.8 or higher
-tkinter  (bundled with most Python distributions)
-PLY      (pip install ply)
+tkinter (usually comes with Python)
 ```
 
 ### Setup
-
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/mini-compiler.git
 cd mini-compiler
 
-# Install the only required third-party dependency
-pip install ply
+# Install dependencies (if any)
+pip install -r requirements.txt
 
 # Run the compiler
 python main.py
 ```
-
-> **Note:** `requirements.txt` lists every package in the development environment.  
-> The only runtime dependency is **`ply`**. Everything else is standard-library.
 
 ---
 
 ## 📖 Usage
 
 ### Starting the Compiler
-
 ```bash
 python main.py
 ```
 
 ### Basic Workflow
 
-1. **Write or open code** in the left editor panel (syntax highlighting updates live)
-2. **Click ▶ Run** (or press `F5`) to compile
-3. **Inspect results** in the seven output tabs:
+1. **Write Code** - Use the left editor panel with syntax highlighting
+2. **Click Run** ▶ - Compile your code
+3. **View Results** - Check outputs in the tabbed panel:
+   - **Tokens** - Lexical analysis results
+   - **Symbols** - Variable and scope information
+   - **IR Code** - Intermediate representation
+   - **Assembly** - Generated assembly code
+   - **Problems** - Errors and warnings
 
-| Tab | Content |
-|-----|---------|
-| **Tokens** | Token type, value, and line number for every lexeme |
-| **Syntax** | Fired grammar rules, AST node labels, parse-tree text, and stats |
-| **Symbols** | Variable registry with type, scope level, address, and init status |
-| **Semantic** | Pass/fail checklist for each semantic rule; any errors listed below |
-| **IR Code** | Three-address instructions: `op`, `src1`, `src2`, `dst` |
-| **Assembly** | Pseudo-x86 NASM output with proper register allocation |
-| **Problems** | Unified lexical + parse/semantic error list |
-
-### LL(1) Grammar Tool
-
-Click **LL(1)** in the toolbar to open the grammar window.  
-Enter productions interactively; the tool applies left-recursion removal, left factoring, then shows FIRST/FOLLOW sets and the LL(1) parsing table.
-
-You can also run it from the terminal:
-
-```bash
-python grammar_tool.py
-```
-
----
-
-## 📝 Supported Syntax
+### Supported Syntax
 
 ```c
-// ── Variable declarations ───────────────────────────────
+// Variable declarations
 int x;
-float y = 3.14;
+int y;
 
-// ── Assignments ─────────────────────────────────────────
+// Assignments
 x = 10;
-y = x + 2;
+y = 20;
 
-// ── Arithmetic (all five operators) ─────────────────────
-int a;
-a = (x * 3 + y) / 2 % 5;
+// Arithmetic operations
+int sum;
+sum = x + y;
 
-// ── Output ──────────────────────────────────────────────
-print(a);
+// Output
+print(sum);
 
-// ── If / If-Else ────────────────────────────────────────
+// Conditionals
 if (x < y) {
     int diff;
     diff = y - x;
     print(diff);
-} else {
-    print(x);
 }
 
-// ── While loop ──────────────────────────────────────────
+// Loops
 int counter;
 counter = 0;
 while (counter < 5) {
@@ -149,158 +115,82 @@ while (counter < 5) {
     counter = counter + 1;
 }
 
-// ── Comments ────────────────────────────────────────────
-// single-line comment
-/* multi-line
+// Comments
+// Single line comment
+/* Multi-line
    comment */
 ```
-
-### Supported Operators
-
-| Category | Operators |
-|----------|-----------|
-| Arithmetic | `+`  `-`  `*`  `/`  `%` |
-| Relational | `<`  `<=`  `>`  `>=`  `==`  `!=` |
-| Assignment | `=` |
-
-### Data Types
-
-`int` · `float`
 
 ---
 
 ## 🏗️ Architecture
 
 ### Project Structure
-
 ```
 mini-compiler/
-├── main.py              # Entry point — launches Tkinter root + CompilerInterface
-├── gui.py               # VS Code–styled GUI (CompilerInterface, renderers, LL1Window)
-├── lexer.py             # Lexical analyser   — TokenScanner  (PLY lex)
-├── parser.py            # Syntax analyser    — SyntaxProcessor (PLY yacc, TAC emitter)
-├── syntax_analysis.py   # Syntax result builder — wraps SyntaxProcessor, builds AST view
-├── symbol_table.py      # Symbol table       — VariableRegistry (nested scope stack)
-├── semantic.py          # Semantic checks    — semantic_analysis()
-├── code_generator.py    # Code generator     — AssemblyTranslator (TAC → pseudo-x86)
-├── grammar_utils.py     # LL(1) utilities    — left-recursion removal, left factoring,
-│                        #                      FIRST/FOLLOW, LL(1) table, formatters
-├── grammar_tool.py      # LL(1) CLI          — interactive terminal interface
-├── parsetab.py          # Auto-generated PLY parse table (do not edit)
-└── parser.out           # PLY parser debug log (auto-generated)
+├── main.py              # Entry point
+├── gui.py               # VS Code-styled GUI
+├── lexer.py             # Lexical analyzer (TokenScanner)
+├── parser.py            # Syntax analyzer (SyntaxProcessor)
+├── code_generator.py    # Code generator (AssemblyTranslator)
+└── symbol_table.py      # Symbol table management
 ```
 
 ### Compilation Pipeline
 
-```
-Source Code
-    │
-    ▼
-┌─────────────┐
-│   Lexer     │  TokenScanner (PLY lex)
-│  lexer.py   │  → token stream
-└──────┬──────┘
-       │
-       ▼
-┌─────────────────┐
-│     Parser      │  SyntaxProcessor (PLY yacc LALR(1))
-│   parser.py     │  → AST  +  three-address IR  +  symbol table
-└────────┬────────┘
-         │
-    ┌────┴────┐
-    ▼         ▼
-┌────────┐  ┌──────────────┐
-│Symbol  │  │  IR Code     │
-│ Table  │  │ (TAC dicts)  │
-└────────┘  └──────┬───────┘
-                   │
-                   ▼
-          ┌─────────────────┐
-          │ Code Generator  │  AssemblyTranslator
-          │code_generator.py│  → pseudo-x86 NASM assembly
-          └─────────────────┘
+```mermaid
+graph LR
+    A[Source Code] --> B[Lexer]
+    B --> C[Parser]
+    C --> D[Symbol Table]
+    C --> E[IR Generator]
+    E --> F[Code Generator]
+    F --> G[Assembly Output]
 ```
 
-### Key Design Decisions
+### Components
 
-- **PLY LALR(1)** for the parser — generates the parse table once (`parsetab.py`) and reuses it on every compilation run for speed.
-- **Marker productions** (`if_jump`, `else_jump`, `if_end`, `while_start`, `while_body`, `while_end`) allow back-patching labels into the IR without a separate IR-rewrite pass.
-- **Round-robin register allocator** in `AssemblyTranslator` maps temporaries to `EBX/ECX/ESI/EDI`; `EAX/EDX` are used as scratch for arithmetic and division.
-- **LL(1) tool** is completely independent of the LALR compiler — it is a teaching aid for grammar analysis.
-
----
-
-## 🎨 Assembly Output Details
-
-The `AssemblyTranslator` produces NASM-compatible pseudo-assembly:
-
-```nasm
-; ── Generated Assembly ─────────────────────────────
-section .data
-    fmt_int  db "%d", 10, 0
-section .text
-    global main
-    extern printf
-
-main:
-    PUSH    EBP
-    MOV     EBP, ESP
-    ; ... generated instructions ...
-    MOV     EAX, EBX
-    CDQ
-    IDIV    ECX          ; division with sign-extend
-    MOV     ESI, EAX     ; quotient
-    CMP     EBX, ECX
-    SETLE   AL
-    MOVZX   EAX, AL      ; boolean result
-    MOV     EDI, EAX
-.exit:
-    XOR     EAX, EAX
-    MOV     ESP, EBP
-    POP     EBP
-    RET
-```
+| Component | Description |
+|-----------|-------------|
+| **TokenScanner** | Breaks source code into tokens (keywords, identifiers, operators) |
+| **SyntaxProcessor** | Validates syntax and builds intermediate representation |
+| **Symbol Registry** | Manages variables with scope and type information |
+| **AssemblyTranslator** | Converts IR to assembly instructions |
 
 ---
 
 ## 📸 Screenshots
 
 ### Main Interface
+<img width="1441" height="888" alt="View1" src="https://github.com/user-attachments/assets/18708cec-4e0f-4cf7-b672-9da2127ea0b4" />
 
-<img width="1396" height="795" alt="Main Interface" src="https://github.com/user-attachments/assets/33812444-7d60-4e42-9990-8f75c5b9acb9" />
-
-*Dracula-themed editor with live syntax highlighting and split-panel output*
+*VS Code-styled editor with syntax highlighting and split-panel output*
 
 ### Compilation Results
+<img width="1436" height="890" alt="View2" src="https://github.com/user-attachments/assets/5633a957-9dba-4830-b75d-52e393b2deef" />
 
-<img width="1392" height="634" alt="Compilation Results" src="https://github.com/user-attachments/assets/5bb4986a-ea2b-4477-bebb-1c23a80f80b9" />
 
-*Token analysis, symbol table, IR code, and assembly output across seven tabs*
+
+*Detailed token analysis, symbol table, IR code, and assembly output*
 
 ---
 
-## 🎯 Syntax Highlighting Reference
+## 🎯 Syntax Highlighting Colors
 
-### Code Editor
+### Code Editor (VS Code Dark+)
+- **Keywords** (`int`, `if`, `while`) - <span style="color: #C586C0">**Purple**</span>
+- **Numbers** (`10`, `20`) - <span style="color: #B5CEA8">**Light Green**</span>
+- **Comments** (`//`, `/* */`) - <span style="color: #6A9955">**Green**</span>
+- **Operators** (`+`, `-`, `*`) - <span style="color: #D4D4D4">**White**</span>
+- **Functions** (`print`) - <span style="color: #DCDCAA">**Yellow**</span>
+- **Variables** - <span style="color: #9CDCFE">**Light Blue**</span>
 
-| Element | Color |
-|---------|-------|
-| Keywords (`int`, `if`, `while`, …) | `#FF7B72` Red-orange |
-| Numbers (`10`, `3.14`) | `#BC8CFF` Purple |
-| Comments (`//`, `/* */`) | `#484F58` Grey italic |
-| Operators (`+`, `-`, `*`, …) | `#FF7B72` Red-orange |
-| Functions (`print`) | `#3FB950` Green bold |
-| Variables / identifiers | `#C9D1D9` Light grey |
-
-### Output Panels (Dracula palette)
-
-| Element | Color |
-|---------|-------|
-| Instructions / keywords | `#8BE9FD` Cyan |
-| Registers | `#FFB86C` Orange |
-| Labels | `#F1FA8C` Yellow |
-| Errors | `#FF5555` Red |
-| Success / OK | `#50FA7B` Green |
+### Output Panels
+- **Instructions** - <span style="color: #569CD6">**Blue**</span>
+- **Registers** - <span style="color: #CE9178">**Orange**</span>
+- **Labels** - <span style="color: #DCDCAA">**Yellow**</span>
+- **Errors** - <span style="color: #F14C4C">**Red**</span>
+- **Success** - <span style="color: #89D185">**Green**</span>
 
 ---
 
@@ -316,13 +206,10 @@ main:
 
 ## 🛠️ Technologies Used
 
-| Technology | Purpose |
-|------------|---------|
-| **Python 3.8+** | Core language |
-| **Tkinter** | GUI framework |
-| **PLY 3.11** | Lexer (`lex`) and LALR(1) parser (`yacc`) |
-| **`re` module** | Syntax highlighting pattern matching |
-| **`collections.OrderedDict`** | Grammar ordering in LL(1) utilities |
+- **Python** - Core programming language
+- **Tkinter** - GUI framework
+- **Regular Expressions** - Pattern matching for lexical analysis
+- **Custom Parser** - Recursive descent parsing
 
 ---
 
@@ -330,7 +217,7 @@ main:
 
 **Abdullah Al-Mamun**
 
-Built with ❤️ for Compiler Design final lab project
+Built with ❤️ for compiler design final lab project
 
 ---
 
@@ -338,7 +225,6 @@ Built with ❤️ for Compiler Design final lab project
 
 **⭐ Star this repo if you find it helpful!**
 
-Made with Python · PLY · Tkinter
+Made with Python and Tkinter
 
-</div>#   M i n i _ C o m p i l e r  
- 
+</div>
