@@ -200,9 +200,16 @@ graph LR
 
 ### Compilation Results
 
-<img width="1436" height="890" alt="Compilation Results" src="https://github.com/user-attachments/assets/5633a957-9dba-4830-b75d-52e393b2deef" />
+<img width="1438" height="890" alt="View3" src="https://github.com/user-attachments/assets/e92974c8-b7d7-4feb-a026-5b3bfa8c2df4" />
 
 *Detailed token analysis, symbol table, IR code, and assembly output*
+
+### LL(1) Grammar Analysis
+
+<img width="1436" height="890" alt="View2" src="https://github.com/user-attachments/assets/f7a32fde-90d6-43a8-a95b-9228ab6bfd10" />
+
+*Interactive LL(1) grammar tool featuring left recursion elimination, left factoring, FIRST/FOLLOW set generation, and LL(1) parsing table construction.*
+
 
 ---
 
