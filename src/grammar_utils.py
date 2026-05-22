@@ -310,40 +310,6 @@ def compute_follow(grammar: dict, first: dict) -> dict:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-#  Parsing Table
-# ─────────────────────────────────────────────────────────────────────────────
-
-def compute_parsing_table(grammar: dict, first: dict, follow: dict) -> dict:
-    table = {}
-
-    def first_of_prod(prod):
-        if prod == ['ε']:
-            return {'ε'}
-        result       = set()
-        all_nullable = True
-        for symbol in prod:
-            sf = first.get(symbol, {symbol}) if symbol in grammar else {symbol}
-            result |= (sf - {'ε'})
-            if 'ε' not in sf:
-                all_nullable = False
-                break
-        if all_nullable:
-            result.add('ε')
-        return result
-
-    for nt, productions in grammar.items():
-        for prod in productions:
-            fp = first_of_prod(prod)
-            for terminal in fp - {'ε'}:
-                table.setdefault((nt, terminal), []).append(prod)
-            if 'ε' in fp:
-                for terminal in follow.get(nt, set()):
-                    table.setdefault((nt, terminal), []).append(prod)
-
-    return table
-
-
-# ─────────────────────────────────────────────────────────────────────────────
 #  Display Helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
