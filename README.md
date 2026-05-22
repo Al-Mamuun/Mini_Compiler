@@ -62,7 +62,7 @@ PLY      (pip install ply)
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/mini-compiler.git
+git clone https://github.com/Al-Mamuun/Mini_Compiler.git
 cd mini-compiler
 
 # Install dependencies
