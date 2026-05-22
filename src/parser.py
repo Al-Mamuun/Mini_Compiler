@@ -10,6 +10,12 @@ class SyntaxProcessor:
 
     tokens = TokenScanner.tokens
 
+    # ── Operator precedence ──────────────────────────────────────────────────
+    precedence = (
+        ('left', 'PLUS', 'MINUS'),
+        ('left', 'MULTIPLY', 'DIVIDE', 'MOD'),
+    )
+
     # ── Helpers ──────────────────────────────────────────────────────────────
 
     def __init__(self):
@@ -54,7 +60,10 @@ class SyntaxProcessor:
                 | output_stmt
                 | conditional
                 | loop
-                | code_block'''
+                | code_block
+                | func_decl
+                | return_stmt
+                | expr_stmt'''
         p[0] = p[1]
 
     # ── Declarations ─────────────────────────────────────────────────────────
@@ -79,8 +88,81 @@ class SyntaxProcessor:
 
     def p_data_type(self, p):
         '''data_type : INT
-                     | FLOAT'''
+                     | FLOAT
+                     | VOID'''
         p[0] = p[1]
+
+    # ── Function Declaration ──────────────────────────────────────────────────
+
+    def p_func_decl(self, p):
+        '''func_decl : data_type IDENTIFIER LPAREN param_list RPAREN code_block
+                     | data_type IDENTIFIER LPAREN RPAREN code_block'''
+        fname = p[2]
+        dtype = p[1]
+        if len(p) == 7:
+            params = p[4]
+            body   = p[6]
+        else:
+            params = []
+            body   = p[5]
+        if self.registry.is_declared_in_current_scope(fname):
+            self.issues.append(f"Error: function '{fname}' already declared")
+        else:
+            self.registry.add(fname, dtype, None, 'function')
+        self.emit('func_begin', fname, dtype)
+        p[0] = ('func_decl', dtype, fname, params, body)
+
+    def p_param_list(self, p):
+        '''param_list : param_list COMMA param
+                      | param'''
+        if len(p) == 4:
+            p[0] = p[1] + [p[3]]
+        else:
+            p[0] = [p[1]]
+
+    def p_param(self, p):
+        '''param : data_type IDENTIFIER'''
+        self.registry.add(p[2], p[1], None, 'param')
+        self.emit('param', p[2], p[1])
+        p[0] = (p[1], p[2])
+
+    # ── Return statement ─────────────────────────────────────────────────────
+
+    def p_return_stmt(self, p):
+        '''return_stmt : RETURN expr SEMICOLON
+                       | RETURN SEMICOLON'''
+        if len(p) == 4:
+            self.emit('return', p[2])
+            p[0] = ('return', p[2])
+        else:
+            self.emit('return', None)
+            p[0] = ('return', None)
+
+    # ── Expression statement (function call as statement) ────────────────────
+
+    def p_expr_stmt(self, p):
+        'expr_stmt : IDENTIFIER LPAREN arg_list RPAREN SEMICOLON'
+        fname = p[1]
+        args  = p[3]
+        if not self.registry.find(fname):
+            self.issues.append(f"Error: Undefined function '{fname}'")
+        tmp = self.gen_temp()
+        for arg in args:
+            self.emit('arg', arg)
+        self.emit('call', fname, len(args), tmp)
+        p[0] = ('call_stmt', fname, args)
+
+    def p_arg_list_many(self, p):
+        '''arg_list : arg_list COMMA expr'''
+        p[0] = p[1] + [p[3]]
+
+    def p_arg_list_one(self, p):
+        '''arg_list : expr'''
+        p[0] = [p[1]]
+
+    def p_arg_list_empty(self, p):
+        '''arg_list :'''
+        p[0] = []
 
     # ── Assignment ───────────────────────────────────────────────────────────
 
@@ -243,6 +325,18 @@ class SyntaxProcessor:
             self.issues.append(f"Error: Undefined variable '{p[1]}'")
         p[0] = p[1]
 
+    def p_base_call(self, p):
+        'base : IDENTIFIER LPAREN arg_list RPAREN'
+        fname = p[1]
+        args  = p[3]
+        if not self.registry.find(fname):
+            self.issues.append(f"Error: Undefined function '{fname}'")
+        for arg in args:
+            self.emit('arg', arg)
+        tmp = self.gen_temp()
+        self.emit('call', fname, len(args), tmp)
+        p[0] = tmp
+
     def p_base_paren(self, p):
         'base : LPAREN expr RPAREN'
         p[0] = p[2]
@@ -265,8 +359,15 @@ class SyntaxProcessor:
     # ── Lifecycle ────────────────────────────────────────────────────────────
 
     def initialize(self):
-        """Build the PLY parser (writes parser.out / parsetab.py)."""
-        self.processor = yacc.yacc(module=self)
+        """Build the PLY parser (no output files generated)."""
+        import logging
+        logging.getLogger('ply').setLevel(logging.CRITICAL)
+        self.processor = yacc.yacc(
+            module=self,
+            debug=False,
+            write_tables=False,
+            errorlog=yacc.NullLogger(),
+        )
 
     def process(self, code: str):
         """Parse *code*, populate the symbol table, and emit IR."""
