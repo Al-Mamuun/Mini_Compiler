@@ -10,6 +10,7 @@ class TokenScanner:
         'for':    'FOR',
         'int':    'INT',
         'float':  'FLOAT',
+        'void':   'VOID',
         'return': 'RETURN',
         'print':  'PRINT',
     }
