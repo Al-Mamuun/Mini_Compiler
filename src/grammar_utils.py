@@ -372,61 +372,6 @@ def format_first_follow(first: dict, follow: dict) -> str:
             lines.append(f'  FOLLOW({nt}) = {{ {clean} }}')
     return '\n'.join(lines)
 
-
-def format_parsing_table(grammar: dict, table: dict, follow: dict) -> str:
-    nts       = list(grammar.keys())
-    terminals = sorted({t for (_, t) in table.keys()})
-
-    if not terminals:
-        return '── LL(1) Parsing Table ────────────────\n\n  (no terminals found)'
-
-    def cell_str(nt, t):
-        cell = table.get((nt, t), [])
-        if not cell:        return ''
-        if len(cell) == 1:  return f"{nt} → {' '.join(cell[0])}"
-        return '⚠ CONFLICT'
-
-    nt_w  = max(len(nt) for nt in nts) + 2
-    col_w = max(
-        max(len(t) for t in terminals),
-        max(
-            len(cell_str(nt, t))
-            for nt in nts
-            for t in terminals
-        ),
-        8
-    ) + 4
-
-    def hline(l, m, r):
-        return l + '─' * (nt_w + 2) + m + m.join('─' * (col_w + 2) for _ in terminals) + r
-
-    lines = ['── LL(1) Parsing Table ────────────────', '']
-    lines.append(hline('┌', '┬', '┐'))
-    hdr = '│' + f"{'':^{nt_w + 2}}" + '│'
-    for t in terminals:
-        hdr += f" {t:^{col_w}} │"
-    lines.append(hdr)
-    lines.append(hline('├', '┼', '┤'))
-
-    has_conflict = False
-    for idx, nt in enumerate(nts):
-        row = '│' + f" {nt:^{nt_w}} " + '│'
-        for t in terminals:
-            val = cell_str(nt, t)
-            if '⚠' in val:
-                has_conflict = True
-            row += f" {val:^{col_w}} │"
-        lines.append(row)
-        if idx < len(nts) - 1:
-            lines.append(hline('├', '┼', '┤'))
-
-    lines.append(hline('└', '┴', '┘'))
-    lines.append('')
-    lines.append('  ⚠  Grammar is NOT LL(1) — conflicts detected'
-                 if has_conflict else '  ✓  Grammar is LL(1)')
-    return '\n'.join(lines)
-
-
 def print_grammar(grammar: dict):
     for nt, productions in grammar.items():
         rhs = ' | '.join(' '.join(prod) for prod in productions)
