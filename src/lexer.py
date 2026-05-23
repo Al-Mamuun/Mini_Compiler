@@ -1,64 +1,106 @@
 import ply.lex as lex
 
 class TokenScanner:
-    """Lexical analyzer for scanning and tokenizing source code"""
+    """Lexical analyzer — supports both LexiCore syntax and C-style code."""
 
     keywords = {
-        'if':     'IF',
-        'else':   'ELSE',
-        'while':  'WHILE',
-        'for':    'FOR',
-        'int':    'INT',
-        'float':  'FLOAT',
-        'void':   'VOID',
-        'return': 'RETURN',
-        'print':  'PRINT',
+        'if':       'IF',
+        'else':     'ELSE',
+        'while':    'WHILE',
+        'for':      'FOR',
+        'int':      'INT',
+        'float':    'FLOAT',
+        'void':     'VOID',
+        'return':   'RETURN',
+        'print':    'PRINT',
+        'scanf':    'SCANF',
+        'printf':   'PRINTF',
+        'break':    'BREAK',
+        'continue': 'CONTINUE',
+        'char':     'CHAR',
+        'double':   'DOUBLE',
+        'long':     'LONG',
+        'short':    'SHORT',
+        'unsigned': 'UNSIGNED',
+        'main':     'MAIN',
     }
 
     tokens = [
         'IDENTIFIER', 'INTEGER', 'DECIMAL',
+        'STRING_LIT',
         'PLUS', 'MINUS', 'MULTIPLY', 'DIVIDE', 'MOD',
         'EQUALS',
         'EQUAL_TO', 'NOT_EQUAL',
         'LESS_EQ', 'GREATER_EQ', 'LESS', 'GREATER',
         'LPAREN', 'RPAREN', 'LBRACE', 'RBRACE',
+        'LBRACKET', 'RBRACKET',
         'SEMICOLON', 'COMMA',
+        'AND', 'OR', 'NOT',
+        'INCREMENT', 'DECREMENT',
+        'PLUS_ASSIGN', 'MINUS_ASSIGN', 'MUL_ASSIGN', 'DIV_ASSIGN',
+        'AMPERSAND',
+        'HASH',
+        'DOT',
     ] + list(keywords.values())
+
+    # ── Preprocessor lines (#include, #define) — skip entirely ──────────────
+    def t_PREPROCESSOR(self, tok):
+        r'\#[^\n]*'
+        pass  # discard preprocessor directives
 
     # ── Single-line comment ──────────────────────────────────────────────────
     def t_COMMENT_SINGLE(self, tok):
         r'//[^\n]*'
-        pass  # discard
+        pass
 
     # ── Multi-line comment ───────────────────────────────────────────────────
     def t_COMMENT_MULTI(self, tok):
         r'/\*(.|\n)*?\*/'
         tok.lexer.lineno += tok.value.count('\n')
-        pass  # discard
+        pass
 
-    # ── Two-char operators (must appear BEFORE single-char versions) ─────────
-    t_EQUAL_TO   = r'=='
-    t_NOT_EQUAL  = r'!='
-    t_LESS_EQ    = r'<='
-    t_GREATER_EQ = r'>='
+    # ── String literals ──────────────────────────────────────────────────────
+    def t_STRING_LIT(self, tok):
+        r'"([^"\\]|\\.)*"'
+        return tok
+
+    # ── Three / two-char operators (must appear BEFORE shorter ones) ─────────
+    t_AND           = r'&&'
+    t_OR            = r'\|\|'
+    t_INCREMENT     = r'\+\+'
+    t_DECREMENT     = r'--'
+    t_PLUS_ASSIGN   = r'\+='
+    t_MINUS_ASSIGN  = r'-='
+    t_MUL_ASSIGN    = r'\*='
+    t_DIV_ASSIGN    = r'/='
+    t_EQUAL_TO      = r'=='
+    t_NOT_EQUAL     = r'!='
+    t_LESS_EQ       = r'<='
+    t_GREATER_EQ    = r'>='
 
     # ── Single-char operators ────────────────────────────────────────────────
-    t_PLUS      = r'\+'
-    t_MINUS     = r'-'
-    t_MULTIPLY  = r'\*'
-    t_DIVIDE    = r'/'
-    t_MOD       = r'%'
-    t_EQUALS    = r'='
-    t_LESS      = r'<'
-    t_GREATER   = r'>'
+    t_PLUS          = r'\+'
+    t_MINUS         = r'-'
+    t_MULTIPLY      = r'\*'
+    t_DIVIDE        = r'/'
+    t_MOD           = r'%'
+    t_EQUALS        = r'='
+    t_LESS          = r'<'
+    t_GREATER       = r'>'
+    t_NOT           = r'!'
+    t_AMPERSAND     = r'&'
+    t_DOT           = r'\.'
 
     # ── Delimiters ───────────────────────────────────────────────────────────
-    t_LPAREN    = r'\('
-    t_RPAREN    = r'\)'
-    t_LBRACE    = r'\{'
-    t_RBRACE    = r'\}'
-    t_SEMICOLON = r';'
-    t_COMMA     = r','
+    t_LPAREN        = r'\('
+    t_RPAREN        = r'\)'
+    t_LBRACE        = r'\{'
+    t_RBRACE        = r'\}'
+    t_LBRACKET      = r'\['
+    t_RBRACKET      = r'\]'
+    t_SEMICOLON     = r';'
+    t_COMMA         = r','
+    t_HASH          = r'\#'
 
     t_ignore = ' \t'
 
@@ -95,21 +137,12 @@ class TokenScanner:
         self.issues = []
 
     def initialize(self):
-        """Build the PLY lexer."""
         self.scanner = lex.lex(module=self)
 
     def scan(self, code: str):
-        """
-        Tokenize *code*.
-
-        Returns
-        -------
-        token_stream : list[dict]   – one dict per token
-        issues       : list[str]    – lexical error messages
-        """
         self.token_stream = []
         self.issues = []
-        self.scanner.lineno = 1          # reset line counter for each run
+        self.scanner.lineno = 1
         self.scanner.input(code)
 
         while True:
