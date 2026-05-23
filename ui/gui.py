@@ -68,13 +68,14 @@ SNIPPETS = [
     ("Max of 2", "int a;\nint b;\nint mx;\na = 17;\nb = 42;\nif (a > b) {\n    mx = a;\n}\nif (b >= a) {\n    mx = b;\n}\nprint(mx);\n"),
     ("Even/Odd", "int n;\nint r;\nn = 7;\nr = n - (n / 2) * 2;\nif (r == 0) {\n    print(0);\n}\nif (r != 0) {\n    print(1);\n}\n"),
     ("Power", "int base;\nint exp;\nint res;\nbase = 2;\nexp = 8;\nres = 1;\nwhile (exp > 0) {\n    res = res * base;\n    exp = exp - 1;\n}\nprint(res);\n"),
-    ("Func: add", "int add(int a, int b) {\n    int result;\n    result = a + b;\n    return result;\n}\nint x;\nx = add(3, 7);\nprint(x);\n"),
-    ("Func: square", "int square(int n) {\n    int r;\n    r = n * n;\n    return r;\n}\nint val;\nval = square(5);\nprint(val);\n"),
     ("Func: max", "int max(int a, int b) {\n    if (a > b) {\n        return a;\n    }\n    return b;\n}\nint m;\nm = max(12, 7);\nprint(m);\n"),
     ("Bubble Sort", "int a;\nint b;\nint c;\nint tmp;\na = 9;\nb = 3;\nc = 7;\nif (a > b) { tmp = a; a = b; b = tmp; }\nif (b > c) { tmp = b; b = c; c = tmp; }\nif (a > b) { tmp = a; a = b; b = tmp; }\nprint(a);\nprint(b);\nprint(c);\n"),
-    ("Counter", "int i;\nint limit;\nlimit = 5;\ni = 0;\nwhile (i < limit) {\n    print(i);\n    i = i + 1;\n}\n"),
     ("Swap", "int x;\nint y;\nint tmp;\nx = 10;\ny = 20;\ntmp = x;\nx = y;\ny = tmp;\nprint(x);\nprint(y);\n"),
     ("FizzBuzz", "int i;\nint r3;\nint r5;\ni = 1;\nwhile (i <= 15) {\n    r3 = i - (i / 3) * 3;\n    r5 = i - (i / 5) * 5;\n    if (r3 == 0) { print(3); }\n    if (r5 == 0) { print(5); }\n    if (r3 != 0) {\n        if (r5 != 0) { print(i); }\n    }\n    i = i + 1;\n}\n"),
+    # ── C-style examples ──────────────────────────────────────────────────────
+    ("C: Prime Check", "int main() {\n  int n;\n  int i;\n  int flag;\n  flag = 0;\n  scanf(\"%d\", &n);\n  if (n == 0 || n == 1) {\n    flag = 1;\n  }\n  for (i = 2; i <= n / 2; ++i) {\n    if (n % i == 0) {\n      flag = 1;\n    }\n  }\n  if (flag == 0) {\n    printf(\"%d is a prime number.\", n);\n  }\n  if (flag != 0) {\n    printf(\"%d is not a prime number.\", n);\n  }\n}\n"),
+    ("C: For Loop", "int main() {\n  int i;\n  int sum;\n  sum = 0;\n  for (i = 1; i <= 10; i++) {\n    sum += i;\n  }\n  printf(\"%d\", sum);\n}\n"),
+    ("C: Scanf/Printf", "int main() {\n  int a;\n  int b;\n  int result;\n  scanf(\"%d\", &a);\n  scanf(\"%d\", &b);\n  result = a + b;\n  printf(\"%d\", result);\n}\n"),
 ]
 
 
@@ -1407,32 +1408,38 @@ class CompilerInterface:
         self.editor.bind('<Control-o>', lambda e: self.open_file())
 
         sample = """\
-int a;
-int b;
-a = 5;
-b = 3;
+#include <stdio.h>
 
-/* sum */
-int sum;
-sum = a + b;
-print(sum);
+int main() {
 
-// conditional
-if (a > b) {
-    int diff;
-    diff = a - b;
-    print(diff);
+  int n, i, flag = 0;
+  printf("Enter a positive integer: ");
+  scanf("%d", &n);
+
+  // 0 and 1 are not prime numbers
+  // change flag to 1 for non-prime number
+  if (n == 0 || n == 1)
+    flag = 1;
+
+  for (i = 2; i <= n / 2; ++i) {
+
+    // if n is divisible by i, then n is not prime
+    // change flag to 1 for non-prime number
+    if (n % i == 0) {
+      flag = 1;
+      break;
+    }
+  }
+
+  // flag is 0 for prime numbers
+  if (flag == 0)
+    printf("%d is a prime number.", n);
+  else
+    printf("%d is not a prime number.", n);
+
+  return 0;
 }
-
-// loop
-int i;
-i = 0;
-while (i < 4) {
-    int val;
-    val = i * 3;
-    print(val);
-    i = i + 1;
-}"""
+"""
         self.editor.insert('1.0', sample)
         self.highlighter.highlight()
         self._update_lines()
