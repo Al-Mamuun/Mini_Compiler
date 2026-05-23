@@ -71,7 +71,7 @@ class VariableRegistry:
 
     def push_scope(self, scope_name: str = None):
         if scope_name is None:
-            # FIX: scope → block — সঠিক নাম দেখাবে
+            
             self.current_scope_id += 1
             scope_name = f"block_{self.current_scope_id}"
         self.scope_stack.append({})
