@@ -164,6 +164,21 @@ mini-compiler/
 ├── .gitignore
 └── requirements.txt
 ```
+### Project File Structure
+
+| File | Module | Responsibility |
+|------|--------|----------------|
+| `gui.py` | `CompilerInterface` | Main Tkinter window: editor, output tabs, snippet bar, compilation orchestration |
+| `lexer.py` | `TokenScanner` | PLY-based lexer: keywords, identifiers, numbers, operators, single/multi-line comments |
+| `parser.py` | `SyntaxProcessor` | PLY LALR(1) parser + inline IR emitter: grammar rules, scoping, error recovery |
+| `syntax_analysis.py` | `run_syntax_analysis` | Wrapper that patches the parser to collect fired productions and formats the AST |
+| `symbol_table.py` | `VariableRegistry` | Nested-scope symbol table: push/pop, shadow detection, declaration order tracking |
+| `semantic.py` | `semantic_analysis` | Semantic checks: undeclared use, redeclaration, arity mismatch, return type compatibility |
+| `code_generator.py` | `AssemblyTranslator` | IR-to-x86 translator: register allocation, CDQ/IDIV, SETcc, function prologue/epilogue |
+| `grammar_utils.py` | `grammar_utils` | LL(1) library: normalizer, left-recursion removal, left-factoring, FIRST/FOLLOW |
+| `grammar_tool.py` | CLI tool | Command-line front-end for grammar_utils; used for standalone grammar testing |
+| `parsetab.py` | PLY generated | Auto-generated LALR parse table — not edited manually |
+| `__init__.py` | Package | Empty package marker |
 
 ### Compilation Pipeline
 
